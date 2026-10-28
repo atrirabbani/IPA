@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Sel: Sistem Reproduksi Manusia</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Clay / Playful Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Sniglet:wght@800&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #a8e6cf 0%, #dbede6 100%);
+            user-select: none;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .font-clay {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Claymorphism Styling Effects */
+        .clay-card {
+            background: #ffffff;
+            border-radius: 30px;
+            box-shadow: 
+                8px 8px 16px rgba(166, 180, 200, 0.7),
+                -8px -8px 16px rgba(255, 255, 255, 0.9),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.8),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .clay-btn {
+            background: #4ade80;
+            color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 
+                4px 6px 0px #16a34a,
+                inset 2px 2px 4px rgba(255, 255, 255, 0.6);
+            transition: all 0.1s ease;
+            text-shadow: 1px 2px 2px rgba(0,0,0,0.2);
+        }
+
+        .clay-btn:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0px 2px 0px #16a34a,
+                inset 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .clay-btn-orange {
+            background: #fb923c;
+            box-shadow: 4px 6px 0px #ea580c, inset 2px 2px 4px rgba(255, 255, 255, 0.6);
+        }
+        .clay-btn-orange:active {
+            transform: translateY(4px);
+            box-shadow: 0px 2px 0px #ea580c;
+        }
+
+        .clay-btn-blue {
+            background: #38bdf8;
+            box-shadow: 4px 6px 0px #0284c7, inset 2px 2px 4px rgba(255, 255, 255, 0.6);
+        }
+        .clay-btn-blue:active {
+            transform: translateY(4px);
+            box-shadow: 0px 2px 0px #0284c7;
+        }
+
+        .clay-badge {
+            background: #fef08a;
+            border: 4px solid #facc15;
+            box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), 3px 3px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Canvas Screen Container */
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            height: 540px;
+            margin: 0 auto;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            background-color: #87CEEB;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Custom Modal Animations */
+        .modal-enter {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4">
+
+    <!-- Header Navigation / Info Bar -->
+    <div class="w-full max-w-[960px] flex justify-between items-center mb-3 px-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg border-2 border-white">
+                <i class="fa-solid fa-[#4ade80] fa-dna"></i>
+            </div>
+            <div>
+                <h1 class="font-clay text-2xl sm:text-3xl text-emerald-800 drop-shadow-sm">PETUALANGAN BIOLOGI</h1>
+                <p class="text-xs sm:text-sm font-bold text-emerald-600">Materi: Sistem Reproduksi Manusia (Kelas 9 SMP)</p>
+            </div>
+        </div>
+
+        <button id="btn-sound" onclick="toggleSound()" class="w-10 h-10 clay-card flex items-center justify-center text-emerald-700 hover:text-emerald-900 font-bold text-lg">
+            <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+        </button>
+    </div>
+
+    <!-- Main Game Wrapper -->
+    <div id="game-container" class="relative border-8 border-white/60">
+        
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- UI Overlay: HUD (Heads Up Display) -->
+        <div id="hud" class="hidden absolute top-4 left-4 right-4 flex justify-between items-center pointer-events-none">
+            <!-- Health / Lives & Student Name -->
+            <div class="flex items-center space-x-2">
+                <div class="clay-card px-4 py-2 flex items-center space-x-2 pointer-events-auto">
+                    <i class="fa-solid fa-heart text-red-500 text-xl animate-pulse"></i>
+                    <span id="lives-count" class="font-clay text-xl text-slate-700">3</span>
+                </div>
+                <div class="clay-card px-4 py-2 flex items-center space-x-2 pointer-events-auto bg-emerald-500 text-white border-2 border-white">
+                    <i class="fa-solid fa-user text-white text-sm sm:text-base"></i>
+                    <span id="hud-student-name" class="font-clay text-sm sm:text-base max-w-[100px] sm:max-w-[150px] truncate">Siswa</span>
+                </div>
+            </div>
+
+            <!-- Quiz/Organ Progress Badge -->
+            <div class="clay-badge px-3 py-1.5 sm:px-4 rounded-full flex items-center space-x-2 font-clay text-amber-800 text-xs sm:text-base pointer-events-auto">
+                <i class="fa-solid fa-bookmark text-amber-600"></i>
+                <span id="level-title">Misi: Cari Pos Edukasi</span>
+            </div>
+
+            <!-- Score / Coins -->
+            <div class="clay-card px-4 py-2 flex items-center space-x-2 pointer-events-auto">
+                <i class="fa-solid fa-coins text-yellow-500 text-xl"></i>
+                <span id="score-count" class="font-clay text-xl text-slate-700">0</span>
+            </div>
+        </div>
+
+        <!-- START MENU OVERLAY -->
+        <div id="screen-start" class="absolute inset-0 bg-emerald-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="clay-card p-6 sm:p-8 max-w-lg w-full text-center modal-enter border-4 border-emerald-300">
+                <div class="w-20 h-20 bg-emerald-400 rounded-full mx-auto flex items-center justify-center text-white text-4xl mb-3 shadow-inner border-4 border-white">
+                    <i class="fa-solid fa-child-reaching"></i>
+                </div>
+                <h2 class="font-clay text-3xl sm:text-4xl text-emerald-800 mb-1">Petualangan Bio-Clay!</h2>
+                <p class="text-slate-600 font-bold mb-4 text-xs sm:text-sm">
+                    Sistem Reproduksi Manusia - IPA Kelas 9 SMP
+                </p>
+                
+                <!-- Student Name Input Form -->
+                <div class="mb-5 text-left">
+                    <label for="student-name-input" class="block font-clay text-emerald-800 text-sm mb-1 ml-1">Nama Siswa / Penjelajah:</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user-pen absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 text-lg"></i>
+                        <input type="text" id="student-name-input" placeholder="Masukkan namamu di sini..." 
+                            class="w-full pl-11 pr-4 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-2xl font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition">
+                    </div>
+                    <p id="name-error" class="hidden text-xs text-red-500 font-bold mt-1 ml-1"><i class="fa-solid fa-circle-exclamation mr-1"></i>Silakan isi nama kamu terlebih dahulu!</p>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="validateAndStart()" class="w-full py-3.5 text-lg sm:text-xl font-clay clay-btn uppercase tracking-wider flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Mulai Petualangan</span>
+                    </button>
+                    <button onclick="showInstructions()" class="w-full py-2.5 text-sm sm:text-md font-clay clay-btn-blue uppercase tracking-wider flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Cara Bermain</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSTRUCTIONS MODAL -->
+        <div id="screen-instructions" class="hidden absolute inset-0 bg-emerald-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="clay-card p-6 max-w-md w-full text-center modal-enter">
+                <h3 class="font-clay text-2xl text-emerald-800 mb-4"><i class="fa-solid fa-gamepad mr-2"></i>Petunjuk Permainan</h3>
+                
+                <div class="text-left text-sm text-slate-700 space-y-3 mb-6 bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+                    <p><i class="fa-solid fa-arrow-left text-emerald-600"></i> <i class="fa-solid fa-arrow-right text-emerald-600"></i> <b>Tombol Panah / A-D:</b> Bergerak Kiri / Kanan</p>
+                    <p><i class="fa-solid fa-arrow-up text-emerald-600"></i> / <b>Spasi:</b> Melompat naik platform</p>
+                    <p><i class="fa-solid fa-star text-yellow-500"></i> <b>Bendera Edukasi:</b> Lewati bendera untuk memicu kuis materi reproduksi.</p>
+                    <p><i class="fa-solid fa-coins text-amber-500"></i> <b>Koin & Mikroba:</b> Kumpulkan koin dan hindari rintangan kuman/bakteri!</p>
+                </div>
+
+                <button onclick="hideInstructions()" class="w-full py-3 font-clay clay-btn-orange">
+                    Mengerti, Kembali!
+                </button>
+            </div>
+        </div>
+
+        <!-- QUIZ MODAL (INTERACTIVE EDUCATION) -->
+        <div id="quiz-modal" class="hidden absolute inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div class="clay-card p-6 sm:p-8 max-w-xl w-full text-center modal-enter border-4 border-amber-300">
+                <div class="flex justify-between items-center mb-4">
+                    <span id="quiz-tag" class="bg-amber-100 text-amber-800 text-xs font-black px-3 py-1 rounded-full uppercase border border-amber-300">
+                        Pos Edukasi IPA
+                    </span>
+                    <span id="quiz-progress" class="text-xs font-bold text-slate-500">Soal 1 dari 4</span>
+                </div>
+
+                <div class="w-16 h-16 bg-amber-400 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl mb-3 shadow-md">
+                    <i class="fa-solid fa-lightbulb" id="quiz-icon"></i>
+                </div>
+
+                <h3 id="quiz-question" class="font-bold text-slate-800 text-lg sm:text-xl mb-6 leading-relaxed">
+                    Pertanyaan Kuis Reproduksi...
+                </h3>
+
+                <!-- Quiz Options -->
+                <div id="quiz-options" class="grid grid-cols-1 gap-3 mb-4">
+                    <!-- Option Buttons Injected via JS -->
+                </div>
+
+                <!-- Feedback Message -->
+                <div id="quiz-feedback" class="hidden text-sm font-bold p-3 rounded-xl mb-3"></div>
+            </div>
+        </div>
+
+        <!-- GAME OVER / VICTORY MODAL -->
+        <div id="screen-result" class="hidden absolute inset-0 bg-emerald-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div class="clay-card p-6 sm:p-8 max-w-md w-full text-center modal-enter">
+                <div id="result-icon-bg" class="w-20 h-20 bg-yellow-400 rounded-full mx-auto flex items-center justify-center text-white text-4xl mb-3 border-4 border-white shadow-md">
+                    <i id="result-icon" class="fa-solid fa-trophy"></i>
+                </div>
+
+                <h2 id="result-title" class="font-clay text-2xl sm:text-3xl text-emerald-800 mb-1">Hebat! Selamat!</h2>
+                <p id="result-subtitle" class="text-slate-600 font-semibold mb-4 text-xs sm:text-sm">Kamu telah menguasai Materi Sistem Reproduksi!</p>
+
+                <!-- Detailed Result Card -->
+                <div class="bg-emerald-50 rounded-2xl p-4 mb-4 border border-emerald-200 text-center space-y-3">
+                    <!-- Student Name Display -->
+                    <div class="flex justify-between items-center border-b border-emerald-200 pb-2">
+                        <span class="text-xs font-bold text-slate-500">Nama Siswa:</span>
+                        <span id="result-student-name" class="font-clay text-base text-emerald-800">Siswa Bio</span>
+                    </div>
+
+                    <!-- Score & Correct Answers Split -->
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div class="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-sm">
+                            <div class="text-[10px] sm:text-xs text-slate-500 uppercase font-bold tracking-wider">Total Skor</div>
+                            <div id="result-score" class="font-clay text-2xl sm:text-3xl text-emerald-600 mt-0.5">0</div>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-sm">
+                            <div class="text-[10px] sm:text-xs text-slate-500 uppercase font-bold tracking-wider">Jawaban Benar</div>
+                            <div id="result-correct" class="font-clay text-2xl sm:text-3xl text-amber-500 mt-0.5">0 / 4</div>
+                        </div>
+                    </div>
+
+                    <!-- Motivational Message Box -->
+                    <div class="bg-white p-3 rounded-xl border border-emerald-200 text-left">
+                        <div class="flex items-center space-x-1.5 text-xs font-bold text-emerald-700 mb-1">
+                            <i class="fa-solid fa-comment-dots"></i>
+                            <span>Pesan Motivasi:</span>
+                        </div>
+                        <p id="result-motivation" class="text-xs sm:text-sm text-slate-700 font-semibold italic leading-relaxed">
+                            "Luar biasa! Pertahankan semangat belajarmu!"
+                        </p>
+                    </div>
+                </div>
+
+                <button onclick="restartGame()" class="w-full py-3.5 text-base sm:text-lg font-clay clay-btn uppercase tracking-wide flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Main Lagi</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ON-SCREEN TOUCH CONTROLS FOR MOBILE -->
+        <div id="touch-controls" class="absolute bottom-3 left-3 right-3 flex justify-between items-center pointer-events-none md:hidden z-10">
+            <div class="flex space-x-2 pointer-events-auto">
+                <button id="btn-left" class="w-14 h-14 bg-white/80 active:bg-emerald-400 rounded-full flex items-center justify-center text-emerald-800 text-2xl shadow-lg border-2 border-white backdrop-blur">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button id="btn-right" class="w-14 h-14 bg-white/80 active:bg-emerald-400 rounded-full flex items-center justify-center text-emerald-800 text-2xl shadow-lg border-2 border-white backdrop-blur">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="pointer-events-auto">
+                <button id="btn-jump" class="w-16 h-16 bg-amber-400/90 active:bg-amber-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg border-2 border-white backdrop-blur">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer Note -->
+    <p class="text-xs text-emerald-700/80 font-bold mt-3 text-center">
+        Media Pembelajaran Interaktif IPA SMP - Kurikulum Merdeka / 2013
+    </p>
+
+    <script>
+        /* ===================================================================
+           1. AUDIO SYNTHESIZER (Tone / Web Audio API) - No external sound assets needed
+           =================================================================== */
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'jump') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'coin') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(554.37, now + 0.1);
+                osc.frequency.setValueAtTime(659.25, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.25);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-icon').className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+        }
+
+        /* ===================================================================
+           2. EDUCATIONAL QUIZ DATA (Materi Reproduksi SMP Kelas 9)
+           =================================================================== */
+        const quizData = [
+            {
+                id: 1,
+                title: "POS 1: Organ Reproduksi Pria",
+                question: "Organ reproduksi pria yang berfungsi menghasilkan sel sperma dan hormon testosteron adalah...",
+                options: ["Epididimis", "Testis", "Vas Deferens", "Scrotum"],
+                answer: 1,
+                explanation: "Tepat sekali! Testis adalah tempat pembentukan sperma (spermatogenesis) dan hormon testosteron."
+            },
+            {
+                id: 2,
+                title: "POS 2: Organ Reproduksi Wanita",
+                question: "Tempat terjadinya proses fertilisasi (pembuahan sel telur oleh sperma) dinamakan...",
+                options: ["Uterus (Rahim)", "Ovarium", "Tubal Tuba (Tuba Falopi)", "Vagina"],
+                answer: 2,
+                explanation: "Hebat! Fertilisasi secara normal terjadi di saluran telur / Tuba Falopi (Oviduk)."
+            },
+            {
+                id: 3,
+                title: "POS 3: Siklus Menstruasi & Ovulasi",
+                question: "Proses pelepasan sel telur yang telah matang dari ovarium dinamakan...",
+                options: ["Ovulasi", "Menstruasi", "Fertilisasi", "Implantasi"],
+                answer: 0,
+                explanation: "Pintar! Ovulasi adalah peristiwa lepasnya ovum matang dari ovarium yang terjadi pertengahan siklus."
+            },
+            {
+                id: 4,
+                title: "POS 4: Kesehatan Reproduksi",
+                question: "Salah satu upaya menjaga kesehatan organ reproduksi yang paling tepat adalah...",
+                options: [
+                    "Jarang mengganti pakaian dalam",
+                    "Menggunakan celana yang sangat ketat",
+                    "Mengganti pakaian dalam minimal 2x sehari & menjaga kebersihan",
+                    "Sering mengonsumsi minuman beralkohol"
+                ],
+                answer: 2,
+                explanation: "Benar sekali! Menjaga kebersihan dan menggunakan pakaian dalam berbahan menyerap keringat mencegah jamur & bakteri."
+            }
+        ];
+
+        /* ===================================================================
+           3. GAME ENGINE & STATE MANAGEMENT
+           =================================================================== */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Internal Resolution Standard
+        canvas.width = 960;
+        canvas.height = 540;
+
+        let gameState = 'START'; // START, PLAYING, QUIZ, GAMEOVER, VICTORY
+        let score = 0;
+        let lives = 3;
+        let activeCheckpoint = 0;
+        let studentName = "Siswa";
+        let correctAnswersCount = 0;
+
+        // Camera Offset
+        let cameraX = 0;
+
+        // Keys Handler
+        const keys = {
+            left: false,
+            right: false,
+            jump: false
+        };
+
+        // Player Clay Character
+        const player = {
+            x: 80,
+            y: 360,
+            width: 36,
+            height: 48,
+            vx: 0,
+            vy: 0,
+            speed: 4.5,
+            jumpPower: -11.5,
+            gravity: 0.55,
+            grounded: false,
+            facingRight: true,
+            animFrame: 0,
+            animTimer: 0
+        };
+
+        // World Level Design Data
+        let platforms = [];
+        let coins = [];
+        let enemies = [];
+        let checkpoints = [];
+
+        function initLevel() {
+            // Main Ground & Clay Islands
+            platforms = [
+                // Start Ground
+                { x: 0, y: 460, width: 700, height: 80, color: '#4ade80' },
+                
+                // Floating Clay Platforms Set 1
+                { x: 280, y: 350, width: 140, height: 30, color: '#fb923c' },
+                { x: 500, y: 270, width: 160, height: 30, color: '#38bdf8' },
+                
+                // Gap 1 Ground
+                { x: 800, y: 460, width: 850, height: 80, color: '#4ade80' },
+                { x: 1000, y: 340, width: 140, height: 30, color: '#a855f7' },
+                { x: 1220, y: 240, width: 160, height: 30, color: '#fb923c' },
+
+                // Gap 2 Ground
+                { x: 1800, y: 460, width: 900, height: 80, color: '#4ade80' },
+                { x: 2000, y: 350, width: 150, height: 30, color: '#38bdf8' },
+                { x: 2250, y: 260, width: 150, height: 30, color: '#4ade80' },
+
+                // Final Ground
+                { x: 2800, y: 460, width: 800, height: 80, color: '#a855f7' }
+            ];
+
+            // Coins
+            coins = [
+                { x: 300, y: 300, collected: false },
+                { x: 340, y: 300, collected: false },
+                { x: 530, y: 220, collected: false },
+                { x: 570, y: 220, collected: false },
+                { x: 900, y: 410, collected: false },
+                { x: 1030, y: 290, collected: false },
+                { x: 1250, y: 190, collected: false },
+                { x: 1900, y: 410, collected: false },
+                { x: 2050, y: 300, collected: false },
+                { x: 2300, y: 210, collected: false },
+            ];
+
+            // Bacteria / Microbe Enemies
+            enemies = [
+                { x: 600, y: 425, width: 35, height: 35, minX: 450, maxX: 680, vx: 1.5, type: 'germ' },
+                { x: 1100, y: 425, width: 35, height: 35, minX: 900, maxX: 1300, vx: 2, type: 'germ' },
+                { x: 2000, y: 425, width: 35, height: 35, minX: 1850, maxX: 2200, vx: 1.8, type: 'germ' }
+            ];
+
+            // Checkpoints / Quiz Posts
+            checkpoints = [
+                { x: 620, y: 380, width: 40, height: 80, reached: false, quizIndex: 0 },
+                { x: 1300, y: 160, width: 40, height: 80, reached: false, quizIndex: 1 },
+                { x: 2320, y: 180, width: 40, height: 80, reached: false, quizIndex: 2 },
+                { x: 3200, y: 380, width: 40, height: 80, reached: false, quizIndex: 3 } // Finish flag
+            ];
+        }
+
+        /* ===================================================================
+           4. CONTROLS & EVENT LISTENERS
+           =================================================================== */
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') {
+                keys.jump = true;
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') keys.jump = false;
+        });
+
+        // Touch Control Listeners
+        const bindTouch = (id, keyName) => {
+            const btn = document.getElementById(id);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
+            btn.addEventListener('mousedown', () => { keys[keyName] = true; });
+            btn.addEventListener('mouseup', () => { keys[keyName] = false; });
+        };
+
+        bindTouch('btn-left', 'left');
+        bindTouch('btn-right', 'right');
+        bindTouch('btn-jump', 'jump');
+
+        /* ===================================================================
+           5. RENDER FUNCTIONS (Clay Animation Visual Style)
+           =================================================================== */
+
+        // Draw Soft Clay-styled Rounded Box
+        function drawClayRect(x, y, width, height, color, radius = 12) {
+            ctx.save();
+            ctx.fillStyle = color;
+            
+            // Base Shape
+            ctx.beginPath();
+            ctx.roundRect(x - cameraX, y, width, height, radius);
+            ctx.fill();
+
+            // Inner Highlight (3D Clay Effect)
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.beginPath();
+            ctx.roundRect(x - cameraX + 2, y + 2, width - 4, height - 4, radius);
+            ctx.stroke();
+
+            // Bottom Shadow Edge
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.beginPath();
+            ctx.roundRect(x - cameraX, y + height - 6, width, 6, [0, 0, radius, radius]);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Draw Player (Cartoon 3D Clay Boy/Girl Character)
+        function drawPlayer() {
+            const px = player.x - cameraX;
+            const py = player.y;
+
+            ctx.save();
+
+            // Soft Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.beginPath();
+            ctx.ellipse(px + player.width / 2, py + player.height - 2, 16, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body (Clay Sphere/Capsule)
+            ctx.fillStyle = '#ef4444'; // Red shirt
+            ctx.beginPath();
+            ctx.roundRect(px + 4, py + 16, player.width - 8, 22, 10);
+            ctx.fill();
+
+            // Head (Clay Skin Color)
+            ctx.fillStyle = '#fbcfe8';
+            ctx.beginPath();
+            ctx.arc(px + player.width / 2, py + 12, 14, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Clay Eyes
+            ctx.fillStyle = '#1e293b';
+            const eyeOffset = player.facingRight ? 3 : -3;
+            ctx.beginPath();
+            ctx.arc(px + player.width / 2 + eyeOffset - 3, py + 10, 2.5, 0, Math.PI * 2);
+            ctx.arc(px + player.width / 2 + eyeOffset + 4, py + 10, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cute Smile
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(px + player.width / 2 + eyeOffset, py + 14, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+            ctx.stroke();
+
+            // Clay Hat / Hair (Blue Cap)
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.arc(px + player.width / 2, py + 8, 14, Math.PI, Math.PI * 2);
+            ctx.fill();
+            // Cap Visor
+            ctx.fillRect(player.facingRight ? px + player.width / 2 : px + player.width / 2 - 14, py + 6, 14, 4);
+
+            // Legs
+            ctx.fillStyle = '#1e3a8a'; // Blue pants
+            ctx.fillRect(px + 8, py + 36, 8, 10);
+            ctx.fillRect(px + player.width - 16, py + 36, 8, 10);
+
+            ctx.restore();
+        }
+
+        // Draw Germ Enemy
+        function drawEnemy(enemy) {
+            const ex = enemy.x - cameraX;
+            const ey = enemy.y;
+
+            ctx.save();
+            // Bacteria body (Purple Clay blob)
+            ctx.fillStyle = '#9333ea';
+            ctx.beginPath();
+            ctx.arc(ex + enemy.width/2, ey + enemy.height/2, enemy.width/2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Spots
+            ctx.fillStyle = '#c084fc';
+            ctx.beginPath();
+            ctx.arc(ex + 10, ey + 10, 4, 0, Math.PI * 2);
+            ctx.arc(ex + 22, ey + 24, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Angry Eyes
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(ex + 10, ey + 14, 4, 0, Math.PI * 2);
+            ctx.arc(ex + 24, ey + 14, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(ex + 11, ey + 14, 2, 0, Math.PI * 2);
+            ctx.arc(ex + 23, ey + 14, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Draw Coin
+        function drawCoin(coin) {
+            if (coin.collected) return;
+            const cx = coin.x - cameraX;
+            const cy = coin.y;
+
+            ctx.save();
+            ctx.fillStyle = '#eab308';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#fef08a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Draw Quiz Flag Checkpoint
+        function drawCheckpoint(cp, index) {
+            const x = cp.x - cameraX;
+            const y = cp.y;
+
+            ctx.save();
+            // Pole
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(x + 5, y, 6, cp.height);
+
+            // Flag
+            ctx.fillStyle = cp.reached ? '#22c55e' : '#f59e0b';
+            ctx.beginPath();
+            ctx.moveTo(x + 11, y + 5);
+            ctx.lineTo(x + 45, y + 20);
+            ctx.lineTo(x + 11, y + 35);
+            ctx.closePath();
+            ctx.fill();
+
+            // Label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Nunito';
+            ctx.fillText(`POS ${index + 1}`, x - 2, y - 10);
+
+            ctx.restore();
+        }
+
+        // Draw Clay Environment & Scenery
+        function drawBackground() {
+            // Sky Gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#7dd3fc');
+            gradient.addColorStop(1, '#bae6fd');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Parallax Clay Clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            const cloudPositions = [100, 400, 800, 1200, 1600, 2100, 2600, 3100];
+            cloudPositions.forEach(cx => {
+                const x = cx - cameraX * 0.3;
+                ctx.beginPath();
+                ctx.arc(x, 80, 25, 0, Math.PI * 2);
+                ctx.arc(x + 20, 70, 30, 0, Math.PI * 2);
+                ctx.arc(x + 45, 80, 22, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Clay Hills in background
+            ctx.fillStyle = '#86efac';
+            const hillPositions = [0, 600, 1200, 1800, 2400, 3000];
+            hillPositions.forEach(hx => {
+                const x = hx - cameraX * 0.5;
+                ctx.beginPath();
+                ctx.ellipse(x + 200, 500, 250, 120, 0, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        /* ===================================================================
+           6. GAME LOOP & PHYSICS
+           =================================================================== */
+        function update() {
+            if (gameState !== 'PLAYING') return;
+
+            // Player Horizontal Movement
+            if (keys.left) {
+                player.vx = -player.speed;
+                player.facingRight = false;
+            } else if (keys.right) {
+                player.vx = player.speed;
+                player.facingRight = true;
+            } else {
+                player.vx = 0;
+            }
+
+            // Player Jump
+            if (keys.jump && player.grounded) {
+                player.vy = player.jumpPower;
+                player.grounded = false;
+                playSound('jump');
+            }
+
+            // Apply Gravity
+            player.vy += player.gravity;
+
+            // Update Position
+            player.x += player.vx;
+            player.y += player.vy;
+
+            // Platform Collision Detection
+            player.grounded = false;
+            platforms.forEach(plat => {
+                if (
+                    player.x < plat.x + plat.width &&
+                    player.x + player.width > plat.x &&
+                    player.y < plat.y + plat.height &&
+                    player.y + player.height > plat.y
+                ) {
+                    // Check top collision
+                    if (player.vy > 0 && player.y + player.height - player.vy <= plat.y) {
+                        player.y = plat.y - player.height;
+                        player.vy = 0;
+                        player.grounded = true;
+                    }
+                }
+            });
+
+            // Camera Tracking Player
+            cameraX = player.x - canvas.width / 3;
+            if (cameraX < 0) cameraX = 0;
+
+            // Fall Death Check
+            if (player.y > canvas.height + 100) {
+                takeDamage();
+            }
+
+            // Coin Pickups
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    const dist = Math.hypot(player.x + player.width/2 - coin.x, player.y + player.height/2 - coin.y);
+                    if (dist < 25) {
+                        coin.collected = true;
+                        score += 10;
+                        document.getElementById('score-count').innerText = score;
+                        playSound('coin');
+                    }
+                }
+            });
+
+            // Enemy Movement & Collision
+            enemies.forEach(enemy => {
+                enemy.x += enemy.vx;
+                if (enemy.x <= enemy.minX || enemy.x + enemy.width >= enemy.maxX) {
+                    enemy.vx *= -1;
+                }
+
+                // Player <-> Enemy Collision
+                if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                    // Stomp Enemy
+                    if (player.vy > 0 && player.y + player.height - player.vy <= enemy.y + 10) {
+                        player.vy = -8;
+                        enemy.x = -9999; // Remove enemy
+                        score += 25;
+                        document.getElementById('score-count').innerText = score;
+                        playSound('coin');
+                    } else {
+                        takeDamage();
+                    }
+                }
+            });
+
+            // Checkpoint Trigger
+            checkpoints.forEach((cp, idx) => {
+                if (!cp.reached) {
+                    if (
+                        player.x < cp.x + cp.width &&
+                        player.x + player.width > cp.x &&
+                        player.y < cp.y + cp.height &&
+                        player.y + player.height > cp.y
+                    ) {
+                        cp.reached = true;
+                        triggerQuiz(idx);
+                    }
+                }
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawBackground();
+
+            // Platforms
+            platforms.forEach(plat => {
+                drawClayRect(plat.x, plat.y, plat.width, plat.height, plat.color);
+            });
+
+            // Checkpoints
+            checkpoints.forEach((cp, idx) => {
+                drawCheckpoint(cp, idx);
+            });
+
+            // Coins
+            coins.forEach(drawCoin);
+
+            // Enemies
+            enemies.forEach(drawEnemy);
+
+            // Player
+            drawPlayer();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        /* ===================================================================
+           7. GAME LOGIC & QUIZ SYSTEM
+           =================================================================== */
+        function takeDamage() {
+            lives--;
+            playSound('wrong');
+            document.getElementById('lives-count').innerText = lives;
+
+            if (lives <= 0) {
+                endGame(false);
+            } else {
+                // Respawn at safe start
+                player.x = Math.max(80, cameraX);
+                player.y = 200;
+                player.vy = 0;
+            }
+        }
+
+        function triggerQuiz(index) {
+            gameState = 'QUIZ';
+            activeCheckpoint = index;
+
+            const quiz = quizData[index];
+            document.getElementById('quiz-tag').innerText = quiz.title;
+            document.getElementById('quiz-progress').innerText = `Soal ${index + 1} dari ${quizData.length}`;
+            document.getElementById('quiz-question').innerText = quiz.question;
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            quiz.options.forEach((opt, oIdx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:bg-amber-50 active:bg-amber-100 font-bold text-slate-700 transition flex items-center space-x-3";
+                btn.innerHTML = `
+                    <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-black border">${String.fromCharCode(65 + oIdx)}</span>
+                    <span class="text-sm sm:text-base">${opt}</span>
+                `;
+                btn.onclick = () => answerQuiz(oIdx, quiz.answer, quiz.explanation);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-feedback').classList.add('hidden');
+            document.getElementById('quiz-modal').classList.remove('hidden');
+        }
+
+        function answerQuiz(selectedIndex, correctIndex, explanation) {
+            const feedbackEl = document.getElementById('quiz-feedback');
+            feedbackEl.classList.remove('hidden');
+
+            if (selectedIndex === correctIndex) {
+                playSound('correct');
+                score += 100;
+                correctAnswersCount++; // Increment correct answers
+                document.getElementById('score-count').innerText = score;
+
+                feedbackEl.className = "text-sm font-bold p-3 rounded-xl mb-3 bg-emerald-100 text-emerald-800 border border-emerald-300";
+                feedbackEl.innerText = explanation;
+
+                setTimeout(() => {
+                    document.getElementById('quiz-modal').classList.add('hidden');
+                    
+                    // If last checkpoint, win!
+                    if (activeCheckpoint === quizData.length - 1) {
+                        endGame(true);
+                    } else {
+                        gameState = 'PLAYING';
+                    }
+                }, 2200);
+
+            } else {
+                playSound('wrong');
+                feedbackEl.className = "text-sm font-bold p-3 rounded-xl mb-3 bg-red-100 text-red-800 border border-red-300";
+                feedbackEl.innerText = "Jawaban kurang tepat. Coba ingat lagi materinya ya!";
+            }
+        }
+
+        function validateAndStart() {
+            const nameInput = document.getElementById('student-name-input').value.trim();
+            const errorEl = document.getElementById('name-error');
+
+            if (!nameInput) {
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            studentName = nameInput;
+            document.getElementById('hud-student-name').innerText = studentName;
+            startGame();
+        }
+
+        function startGame() {
+            initAudio();
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            
+            score = 0;
+            lives = 3;
+            correctAnswersCount = 0;
+            document.getElementById('score-count').innerText = score;
+            document.getElementById('lives-count').innerText = lives;
+
+            initLevel();
+            gameState = 'PLAYING';
+        }
+
+        function endGame(isVictory) {
+            gameState = isVictory ? 'VICTORY' : 'GAMEOVER';
+
+            const resultModal = document.getElementById('screen-result');
+            const iconBg = document.getElementById('result-icon-bg');
+            const icon = document.getElementById('result-icon');
+            const title = document.getElementById('result-title');
+            const subtitle = document.getElementById('result-subtitle');
+            const motivationEl = document.getElementById('result-motivation');
+
+            document.getElementById('result-student-name').innerText = studentName;
+            document.getElementById('result-score').innerText = score;
+            document.getElementById('result-correct').innerText = `${correctAnswersCount} / ${quizData.length}`;
+
+            if (isVictory) {
+                iconBg.className = "w-20 h-20 bg-yellow-400 rounded-full mx-auto flex items-center justify-center text-white text-4xl mb-3 border-4 border-white shadow-md";
+                icon.className = "fa-solid fa-trophy";
+                title.innerText = `Luar Biasa, ${studentName}!`;
+                subtitle.innerText = "Kamu berhasil menyelesaikan seluruh tantangan petualangan!";
+
+                if (correctAnswersCount === quizData.length) {
+                    motivationEl.innerText = ` Sempurna! Kamu menjawab semua kuis dengan benar. Pengetahuanmu tentang Sistem Reproduksi luar biasa! Peneliti Biologi masa depan!`;
+                } else {
+                    motivationEl.innerText = ` Bagus sekali! Kamu menyelesaikan permainan dengan baik. Tingkatkan lagi pemahaman materi untuk meraih nilai sempurna!`;
+                }
+            } else {
+                iconBg.className = "w-20 h-20 bg-red-400 rounded-full mx-auto flex items-center justify-center text-white text-4xl mb-3 border-4 border-white shadow-md";
+                icon.className = "fa-solid fa-heart-crack";
+                title.innerText = `Tetap Semangat, ${studentName}!`;
+                subtitle.innerText = "Kesempatan untuk belajar masih terbuka lebar!";
+                motivationEl.innerText = ` Jangan berkecil hati! Kegagalan adalah langkah awal menuju sukses. Pelajari kembali materi reproduksi dan coba petualangan ini lagi!`;
+            }
+
+            resultModal.classList.remove('hidden');
+        }
+
+        function restartGame() {
+            document.getElementById('screen-result').classList.add('hidden');
+            startGame();
+        }
+
+        function showInstructions() {
+            document.getElementById('screen-instructions').classList.remove('hidden');
+        }
+
+        function hideInstructions() {
+            document.getElementById('screen-instructions').classList.add('hidden');
+        }
+
+        // Initialize Canvas loop on Window load
+        window.onload = function() {
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
